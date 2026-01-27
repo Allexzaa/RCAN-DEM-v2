@@ -1,0 +1,168 @@
+# DEM-SR v2 Configuration Optimized for FracAdapt
+# ================================================
+# 
+# This configuration is specifically tuned for the FracAdapt
+# Military Fleet Management System's terrain analysis needs.
+#
+# Prioritizes:
+# - Slope accuracy (brake/transmission stress)
+# - Roughness accuracy (suspension stress)
+# - Obstacle detection (impact loading)
+#
+# Author: Alex Zare
+# Date: January 26, 2026
+# Target: FracAdapt Backend Integration
+
+# Model Architecture
+model:
+  type: "rcan_v2"
+  scale: 3                    # 30m → 10m
+  n_resgroups: 10
+  n_resblocks: 20
+  n_feats: 64
+  dropout: 0.1                # Regularization
+  use_spatial_attention: false
+  use_multiscale: false
+
+# Loss Function - Optimized for Vehicle Terrain Analysis
+loss:
+  mode: "fixed"
+  
+  # ===========================================
+  # CORE ELEVATION ACCURACY (Priority: Critical)
+  # ===========================================
+  # Used for: Elevation range, gain, descent
+  w_elevation: 1.0
+  
+  # ===========================================
+  # SLOPE FOR BRAKE/TRANSMISSION (Priority: Critical)
+  # ===========================================
+  # Used for: Max slope, average slope, steep sections
+  # Directly affects brake and transmission stress calculation
+  w_gradient: 0.6
+  
+  # ===========================================
+  # SUSPENSION STRESS METRICS (Priority: Critical)
+  # ===========================================
+  # Roughness Index - Primary suspension wear factor
+  w_tri: 0.3
+  
+  # Obstacle Density - Suspension impact loading
+  w_edge: 0.3
+  
+  # Surface Roughness Weighting - Focus on rough terrain
+  w_complexity: 0.2
+  
+  # ===========================================
+  # TERRAIN SHAPE (Priority: High)
+  # ===========================================
+  # General curvature for terrain classification
+  w_curvature: 0.2
+  
+  # Directional curvature for vehicle dynamics
+  # Profile curvature → pitch rate → front/rear load transfer
+  # Planform curvature → roll rate → left/right load transfer
+  w_directional_curv: 0.2
+  
+  # ===========================================
+  # DETAIL PRESERVATION (Priority: Medium)
+  # ===========================================
+  # High-frequency terrain texture
+  w_spectral: 0.1
+  
+  # Multi-scale loss (disabled for standard routes)
+  w_multiscale: 0.0
+  
+  # ===========================================
+  # COMPONENT TOGGLES
+  # ===========================================
+  use_spectral: true
+  use_edge: true
+  use_complexity: true
+  use_multiscale: false
+  
+  # Component parameters
+  spectral_weight_high: 0.5   # High-freq emphasis for small bumps
+  edge_weight: 2.0            # 2x weight at terrain edges
+  complexity_weight: 2.0      # 2x weight in rough areas
+
+# Training
+training:
+  epochs: 250                 # Extended for better convergence
+  batch_size: 4               # MPS optimized
+  accumulation_steps: 4       # Effective batch = 16
+  
+  # Optimizer
+  optimizer: "adamw"
+  lr: 1.0e-4
+  lr_min: 1.0e-6
+  weight_decay: 0.01
+  
+  # Learning rate schedule
+  scheduler: "warmup_cosine"
+  warmup_epochs: 5
+  
+  # Early stopping
+  early_stopping: true
+  patience: 35                # Slightly longer patience
+  min_delta: 1.0e-4
+  
+  # Gradient clipping
+  clip_grad_norm: 1.0
+  
+  # Checkpointing
+  save_every: 10
+  log_every: 10
+
+# Data Augmentation - Full for better generalization
+augmentation:
+  mode: "full"
+  use_flip: true
+  use_rotation: true
+  use_noise: true
+  noise_std: 0.02
+  noise_prob: 0.5
+  use_shift: true
+  shift_range: 0.1
+  shift_prob: 0.5
+  use_scale: true
+  scale_range: [0.9, 1.1]
+  scale_prob: 0.3
+
+# DataLoader
+dataloader:
+  num_workers: 4
+  pin_memory: false           # MPS
+  persistent_workers: true
+
+# Device
+device: "mps"
+seed: 42
+
+# Inference - Use TTA for best accuracy
+inference:
+  use_tta: true               # Test-time augmentation
+  tta_rotations: [0, 90, 180, 270]
+  tta_flips: false
+  tile_size: 256
+  overlap: 32
+  norm_mode: "global"
+
+# ===========================================
+# FracAdapt Metric Mapping Reference
+# ===========================================
+#
+# Elevation Range      ← w_elevation (1.0)
+# Elevation Gain       ← w_elevation (1.0)
+# Maximum Slope        ← w_gradient (0.6)
+# Average Slope        ← w_gradient (0.6)
+# Steep Sections       ← w_gradient (0.6)
+# Roughness Index      ← w_tri (0.3)
+# Surface Roughness    ← w_complexity (0.2)
+# Obstacle Density     ← w_edge (0.3)
+# TTI Score            ← All losses combined
+#
+# Component Stress:
+# Brake Stress         ← Slope (w_gradient)
+# Transmission Stress  ← Slope (w_gradient)
+# Suspension Stress    ← Roughness (w_tri) + Obstacles (w_edge)
