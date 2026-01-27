@@ -1,14 +1,18 @@
 <div align="center">
-  <img src="images/demo.gif" alt="RCAN-DEM v2 Logo" width="200">
-  
-  # RCAN-DEM v2: Enhanced DEM Super-Resolution
-  
-  <p>
-    <img src="https://img.shields.io/badge/PyTorch-2.0+-ee4c2c?logo=pytorch&logoColor=white" alt="PyTorch">
-    <img src="https://img.shields.io/badge/Python-3.10+-3776ab?logo=python&logoColor=white" alt="Python">
-    <img src="https://img.shields.io/badge/Apple%20Silicon-MPS-000000?logo=apple&logoColor=white" alt="Apple Silicon">
-    <img src="https://img.shields.io/badge/License-MIT-green" alt="License">
-  </p>
+<table><tr><td bgcolor="#0d1117" align="center" style="padding: 20px;">
+<img src="images/demo.gif" alt="RCAN-DEM v2 Logo" width="400">
+</td></tr></table>
+
+# RCAN-DEM v2: Enhanced DEM Super-Resolution
+
+**30m → 10m DEM Super-Resolution for Vehicle Terrain Analysis**
+
+<p>
+  <img src="https://img.shields.io/badge/PyTorch-2.0+-ee4c2c?logo=pytorch&logoColor=white" alt="PyTorch">
+  <img src="https://img.shields.io/badge/Python-3.10+-3776ab?logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/Apple%20Silicon-MPS-000000?logo=apple&logoColor=white" alt="Apple Silicon">
+  <img src="https://img.shields.io/badge/License-MIT-green" alt="License">
+</p>
 </div>
 
 ## Overview
