@@ -362,6 +362,39 @@ inference:
 
 ---
 
+## Training Data: 13 Diverse US Regions
+
+### Original Regions (v1)
+| Region | State | Terrain Type | Tiles |
+|--------|-------|--------------|-------|
+| Kansas | KS | Flat Plains | 225 |
+| Appalachian | VA/WV | Moderate Hills | 225 |
+| Colorado | CO | Steep Mountains | 225 |
+| Oregon | OR | Coastal | 225 |
+| Arizona | AZ | Valleys/Canyons | 225 |
+
+### Extended Extreme Regions (v2)
+| Region | State | Terrain Type | Tiles |
+|--------|-------|--------------|-------|
+| Death Valley | CA | Desert Basin (Low) | 208 |
+| Glacier NP | MT | Glacial/Alpine | 273 |
+| Utah Canyonlands | UT | Mountains & Canyons | 182 |
+| Grand Canyon | AZ | Deep Canyon | 104 |
+| Zion NP | UT | Sandstone Cliffs | 36 |
+| Bryce Canyon | UT | Hoodoos/Erosional | 24 |
+| Monument Valley | AZ/UT | Buttes & Mesas | 48 |
+| Sedona | AZ | Red Rock Formations | 24 |
+
+### Data Summary
+| Split | Tiles | Percentage |
+|-------|-------|------------|
+| **Train** | 1,354 | 67% |
+| **Validation** | 291 | 14% |
+| **Test** | 379 | 19% |
+| **Total** | **2,024** | 100% |
+
+---
+
 ## Expected Improvements
 
 | Metric | v1 Performance | Expected v2 |

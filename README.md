@@ -57,6 +57,25 @@ This is the improved v2 architecture with:
 - Monte Carlo Dropout for uncertainty estimation
 - Improved sliding window blending
 
+## Training Data: 13 US Regions
+
+| Region | Terrain Type | Tiles |
+|--------|--------------|-------|
+| Kansas | Flat Plains | 225 |
+| Appalachian | Moderate Hills | 225 |
+| Colorado | Steep Mountains | 225 |
+| Oregon | Coastal | 225 |
+| Arizona | Valleys/Canyons | 225 |
+| Death Valley, CA | Desert Basin | 208 |
+| Glacier NP, MT | Glacial/Alpine | 273 |
+| Utah Canyonlands | Mountains & Canyons | 182 |
+| Grand Canyon, AZ | Deep Canyon | 104 |
+| Zion NP, UT | Sandstone Cliffs | 36 |
+| Bryce Canyon, UT | Hoodoos/Erosional | 24 |
+| Monument Valley | Buttes & Mesas | 48 |
+| Sedona, AZ | Red Rock Formations | 24 |
+| **Total** | **13 Regions** | **2,024** |
+
 ## Installation
 
 ```bash
