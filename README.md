@@ -1,7 +1,6 @@
 <div align="center">
-<table><tr><td bgcolor="#0d1117" align="center" style="padding: 20px;">
+
 <img src="images/demo.gif" alt="RCAN-DEM v2 Logo" width="400">
-</td></tr></table>
 
 # RCAN-DEM v2: Enhanced DEM Super-Resolution
 
