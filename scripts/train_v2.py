@@ -214,6 +214,53 @@ class EarlyStopping:
             return True  # No improvement
 
 
+def check_nan_inf(tensor: torch.Tensor, name: str = "tensor") -> bool:
+    """
+    Check if tensor contains NaN or Inf values.
+    
+    Returns:
+        True if tensor is valid (no NaN/Inf), False otherwise
+    """
+    if torch.isnan(tensor).any():
+        return False, f"NaN detected in {name}"
+    if torch.isinf(tensor).any():
+        return False, f"Inf detected in {name}"
+    return True, None
+
+
+def validate_checkpoint(checkpoint_path: Path, device: str = "cpu") -> bool:
+    """
+    Validate that a saved checkpoint can be loaded correctly.
+    
+    Returns:
+        True if checkpoint is valid, False otherwise
+    """
+    try:
+        checkpoint = torch.load(checkpoint_path, map_location=device)
+        
+        # Check required keys exist
+        required_keys = ["epoch", "model_state_dict", "optimizer_state_dict", "best_loss"]
+        for key in required_keys:
+            if key not in checkpoint:
+                return False, f"Missing key: {key}"
+        
+        # Check model state dict is not empty
+        if len(checkpoint["model_state_dict"]) == 0:
+            return False, "Empty model state dict"
+        
+        # Check for NaN in model weights
+        for name, param in checkpoint["model_state_dict"].items():
+            if torch.isnan(param).any():
+                return False, f"NaN in model weights: {name}"
+            if torch.isinf(param).any():
+                return False, f"Inf in model weights: {name}"
+        
+        return True, None
+        
+    except Exception as e:
+        return False, f"Failed to load checkpoint: {str(e)}"
+
+
 def create_warmup_scheduler(
     optimizer,
     warmup_epochs: int,
@@ -277,6 +324,13 @@ def train_epoch(
         # Compute loss
         loss, components = criterion(sr, hr, mask)
         
+        # === SAFETY CHECK: NaN/Inf Detection ===
+        is_valid, error_msg = check_nan_inf(loss, "loss")
+        if not is_valid:
+            logger.warning(f"  ⚠️  {error_msg} at batch {batch_idx} - skipping batch")
+            optimizer.zero_grad()  # Clear any accumulated gradients
+            continue  # Skip this batch
+        
         # Scale loss for accumulation
         loss = loss / accumulation_steps
         
@@ -330,6 +384,7 @@ def validate(
     dataloader: DataLoader,
     criterion: nn.Module,
     device: torch.device,
+    logger: logging.Logger = None,
 ) -> Dict[str, float]:
     """Validate model on validation set."""
     model.eval()
@@ -338,9 +393,10 @@ def validate(
     elev_meter = AverageMeter()
     grad_meter = AverageMeter()
     curv_meter = AverageMeter()
+    nan_count = 0
     
     with torch.no_grad():
-        for batch in tqdm(dataloader, desc="Validating", leave=False):
+        for batch_idx, batch in enumerate(tqdm(dataloader, desc="Validating", leave=False)):
             lr = batch["lr"].to(device)
             hr = batch["hr"].to(device)
             mask = batch.get("hr_mask")
@@ -349,6 +405,14 @@ def validate(
             
             sr = model(lr)
             loss, components = criterion(sr, hr, mask)
+            
+            # === SAFETY CHECK: NaN/Inf Detection ===
+            is_valid, error_msg = check_nan_inf(loss, "val_loss")
+            if not is_valid:
+                nan_count += 1
+                if logger:
+                    logger.warning(f"  ⚠️  {error_msg} at val batch {batch_idx}")
+                continue  # Skip this batch
             
             batch_size = lr.size(0)
             loss_meter.update(loss.item(), batch_size)
@@ -360,8 +424,11 @@ def validate(
             if "curvature" in components:
                 curv_meter.update(components["curvature"].item(), batch_size)
     
+    if nan_count > 0 and logger:
+        logger.warning(f"  ⚠️  {nan_count} validation batches had NaN/Inf and were skipped")
+    
     return {
-        "loss": loss_meter.avg,
+        "loss": loss_meter.avg if loss_meter.count > 0 else float("inf"),
         "elevation": elev_meter.avg,
         "gradient": grad_meter.avg,
         "curvature": curv_meter.avg,
@@ -377,8 +444,14 @@ def save_checkpoint(
     config: Dict,
     output_dir: Path,
     is_best: bool = False,
-):
-    """Save training checkpoint."""
+    logger: logging.Logger = None,
+) -> bool:
+    """
+    Save training checkpoint with validation.
+    
+    Returns:
+        True if checkpoint saved and validated successfully
+    """
     checkpoint_dir = output_dir / "checkpoints"
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
     
@@ -395,14 +468,33 @@ def save_checkpoint(
     path = checkpoint_dir / f"epoch_{epoch:03d}.pth"
     torch.save(checkpoint, path)
     
+    # === SAFETY CHECK: Validate saved checkpoint ===
+    is_valid, error_msg = validate_checkpoint(path)
+    if not is_valid:
+        if logger:
+            logger.error(f"  ✗ Checkpoint validation failed: {error_msg}")
+        # Try to save again
+        torch.save(checkpoint, path)
+        is_valid, error_msg = validate_checkpoint(path)
+        if not is_valid:
+            if logger:
+                logger.error(f"  ✗ Retry failed: {error_msg}")
+            return False
+    
     # Save best model
     if is_best:
         best_path = checkpoint_dir / "best_model.pth"
         torch.save(checkpoint, best_path)
+        # Validate best model checkpoint
+        is_valid, error_msg = validate_checkpoint(best_path)
+        if not is_valid and logger:
+            logger.error(f"  ✗ Best model checkpoint validation failed: {error_msg}")
     
     # Save latest
     latest_path = checkpoint_dir / "latest.pth"
     torch.save(checkpoint, latest_path)
+    
+    return True
 
 
 # =============================================================================
@@ -637,7 +729,7 @@ def train(
         )
         
         # Validate
-        val_metrics = validate(model, val_loader, criterion, device)
+        val_metrics = validate(model, val_loader, criterion, device, logger)
         
         # Update scheduler
         scheduler.step()
@@ -690,7 +782,7 @@ def train(
         if epoch % train_config.get("save_every", 10) == 0 or is_best:
             save_checkpoint(
                 model, optimizer, scheduler, epoch,
-                best_loss, config, output_path, is_best
+                best_loss, config, output_path, is_best, logger
             )
         
         # Save history
@@ -701,7 +793,7 @@ def train(
     # Final save
     save_checkpoint(
         model, optimizer, scheduler, epoch,
-        best_loss, config, output_path, is_best=False
+        best_loss, config, output_path, is_best=False, logger=logger
     )
     
     # Close TensorBoard writer
