@@ -270,6 +270,59 @@ optimizer: str = "adamw"
 weight_decay: float = 0.01
 ```
 
+### 6.5 Training Safety Checks
+
+**File:** `scripts/train_v2.py`
+
+**Safety mechanisms to ensure training stability and checkpoint integrity:**
+
+| Safety Check | Purpose | Action on Failure |
+|--------------|---------|-------------------|
+| NaN/Inf Detection | Catch numerical instability | Skip batch, log warning |
+| Gradient Clipping | Prevent gradient explosion | Clip to max norm |
+| Checkpoint Validation | Ensure saved models are valid | Retry save, log error |
+| Early Stopping | Prevent overfitting | Stop training |
+
+**NaN/Inf Detection:**
+```python
+def check_nan_inf(tensor, name):
+    """Check if tensor contains NaN or Inf values."""
+    if torch.isnan(tensor).any():
+        return False, f"NaN detected in {name}"
+    if torch.isinf(tensor).any():
+        return False, f"Inf detected in {name}"
+    return True, None
+```
+- Applied after loss computation in both training and validation
+- Skips affected batch and logs warning with batch index
+- Prevents NaN propagation through model weights
+
+**Gradient Clipping:**
+```python
+clip_grad_norm: float = 1.0  # Maximum gradient norm
+```
+- Clips gradients before optimizer step
+- Prevents large gradient updates that cause instability
+
+**Checkpoint Validation:**
+```python
+def validate_checkpoint(checkpoint_path, device="cpu"):
+    """Validate checkpoint integrity after saving."""
+    # Checks: required keys, non-empty state dict, no NaN in weights
+```
+- Validates every saved checkpoint
+- Retries save once if validation fails
+- Ensures resumable training and deployable models
+
+**Early Stopping:**
+```python
+early_stopping_patience: int = 30
+min_delta: float = 1e-4
+```
+- Monitors validation loss for improvement
+- Stops if no improvement for `patience` epochs
+- Saves best model automatically
+
 ---
 
 ## Phase 7: Inference Improvements

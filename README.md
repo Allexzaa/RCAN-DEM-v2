@@ -52,6 +52,14 @@ This is the improved v2 architecture with:
 - Gradient accumulation (effective batch size 16)
 - Early stopping (patience: 30 epochs)
 
+### Training Safety Checks
+| Safety Check | Purpose | Action |
+|--------------|---------|--------|
+| NaN/Inf Detection | Catch numerical instability | Skip batch, log warning |
+| Gradient Clipping | Prevent gradient explosion | Clip to max norm (1.0) |
+| Checkpoint Validation | Ensure saved models are valid | Retry save, log error |
+| Early Stopping | Prevent overfitting | Stop training |
+
 ### Inference Improvements
 - Test-Time Augmentation (4 rotations)
 - Monte Carlo Dropout for uncertainty estimation
