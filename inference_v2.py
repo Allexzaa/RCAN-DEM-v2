@@ -6,20 +6,28 @@ Enhanced inference with:
 - Test-Time Augmentation (TTA)
 - Uncertainty estimation (Monte Carlo Dropout)
 - Improved sliding window blending
+- AAIGrid output format for FracAdapt backend compatibility
 
 Usage:
-    # Basic inference
-    python inference_v2.py --checkpoint outputs_v2/checkpoints/best_model.pth --input dem_30m.tif --output dem_10m_sr.tif
+    # Basic inference (outputs AAIGrid format by default)
+    python inference_v2.py --checkpoint outputs_v2/checkpoints/best_model.pth --input dem_30m.tif --output dem_10m_sr.asc
     
     # With TTA
-    python inference_v2.py --checkpoint best_model.pth --input dem_30m.tif --output dem_10m.tif --tta
+    python inference_v2.py --checkpoint best_model.pth --input dem_30m.tif --output dem_10m.asc --tta
     
     # With uncertainty estimation
-    python inference_v2.py --checkpoint best_model.pth --input dem_30m.tif --output dem_10m.tif --uncertainty
+    python inference_v2.py --checkpoint best_model.pth --input dem_30m.tif --output dem_10m.asc --uncertainty
+    
+    # Output GeoTIFF format instead
+    python inference_v2.py --checkpoint best_model.pth --input dem_30m.tif --output dem_10m.tif --format geotiff
+    
+    # Output both formats
+    python inference_v2.py --checkpoint best_model.pth --input dem_30m.tif --output dem_10m.asc --also_geotiff dem_10m.tif
 """
 
 import argparse
 import sys
+from collections import namedtuple
 from pathlib import Path
 from typing import Optional, Tuple, List
 
@@ -322,21 +330,137 @@ def inference_sliding_window_v2(
 
 
 def load_dem(input_path: str) -> Tuple[np.ndarray, dict]:
-    """Load DEM from GeoTIFF file."""
-    with rasterio.open(input_path) as src:
-        dem = src.read(1)
-        metadata = {
-            "crs": src.crs,
-            "transform": src.transform,
-            "bounds": src.bounds,
-            "nodata": src.nodata,
-            "width": src.width,
-            "height": src.height,
-        }
+    """
+    Load DEM from GeoTIFF or AAIGrid file.
+    
+    Automatically detects format based on file extension.
+    
+    Args:
+        input_path: Path to input DEM (.tif, .tiff, .asc, or .txt)
+        
+    Returns:
+        Tuple of (dem_array, metadata_dict)
+    """
+    input_path = Path(input_path)
+    ext = input_path.suffix.lower()
+    
+    if ext in ['.asc', '.txt']:
+        # Load AAIGrid format
+        return load_aaigrid(str(input_path))
+    else:
+        # Load GeoTIFF format (default)
+        with rasterio.open(str(input_path)) as src:
+            dem = src.read(1)
+            metadata = {
+                "crs": src.crs,
+                "transform": src.transform,
+                "bounds": src.bounds,
+                "nodata": src.nodata,
+                "width": src.width,
+                "height": src.height,
+                "format": "geotiff",
+            }
+        return dem, metadata
+
+
+def load_aaigrid(input_path: str) -> Tuple[np.ndarray, dict]:
+    """
+    Load DEM from AAIGrid (Arc ASCII Grid) format.
+    
+    This is the format used by OpenTopography API and FracAdapt backend.
+    
+    Args:
+        input_path: Path to AAIGrid file (.asc or .txt)
+        
+    Returns:
+        Tuple of (dem_array, metadata_dict)
+    """
+    header = {}
+    
+    with open(input_path, 'r') as f:
+        # Read header (6 lines)
+        for _ in range(6):
+            line = f.readline().strip()
+            key, value = line.split()
+            key = key.lower()
+            if key in ['ncols', 'nrows']:
+                header[key] = int(value)
+            else:
+                header[key] = float(value)
+        
+        # Read grid data
+        grid_data = []
+        for line in f:
+            row = [float(v) for v in line.strip().split()]
+            if row:  # Skip empty lines
+                grid_data.append(row)
+    
+    dem = np.array(grid_data, dtype=np.float32)
+    
+    # Replace nodata with NaN
+    nodata = header.get('nodata_value', -9999)
+    dem = np.where(dem == nodata, np.nan, dem)
+    
+    # Calculate bounds from header
+    xllcorner = header['xllcorner']
+    yllcorner = header['yllcorner']
+    cellsize = header['cellsize']
+    ncols = header['ncols']
+    nrows = header['nrows']
+    
+    # Create bounds object compatible with rasterio
+    Bounds = namedtuple('Bounds', ['left', 'bottom', 'right', 'top'])
+    bounds = Bounds(
+        left=xllcorner,
+        bottom=yllcorner,
+        right=xllcorner + (ncols * cellsize),
+        top=yllcorner + (nrows * cellsize)
+    )
+    
+    metadata = {
+        "crs": "EPSG:4326",  # Assume WGS84 for geographic coordinates
+        "transform": None,
+        "bounds": bounds,
+        "nodata": nodata,
+        "width": ncols,
+        "height": nrows,
+        "cellsize": cellsize,
+        "xllcorner": xllcorner,
+        "yllcorner": yllcorner,
+        "format": "aaigrid",
+    }
+    
     return dem, metadata
 
 
 def save_dem(
+    dem: np.ndarray,
+    output_path: str,
+    crs,
+    bounds,
+    nodata: Optional[float] = None,
+    output_format: str = "aaigrid",
+    precision: int = 2,
+):
+    """
+    Save DEM to file (AAIGrid or GeoTIFF format).
+    
+    Args:
+        dem: 2D numpy array of elevation values
+        output_path: Output file path
+        crs: Coordinate reference system
+        bounds: Geographic bounds (left, bottom, right, top)
+        nodata: NoData sentinel value
+        output_format: "aaigrid" (default) or "geotiff"
+        precision: Decimal precision for AAIGrid values (default: 2)
+    """
+    if output_format == "aaigrid":
+        save_aaigrid(dem, output_path, bounds, nodata, precision)
+    else:
+        save_geotiff(dem, output_path, crs, bounds, nodata)
+
+
+def save_geotiff(
     dem: np.ndarray,
     output_path: str,
     crs,
@@ -360,38 +484,141 @@ def save_dem(
     ) as dst:
         dst.write(dem, 1)
     
-    print(f"Saved: {output_path} ({height} x {width})")
+    print(f"Saved GeoTIFF: {output_path}")
+    print(f"  Dimensions: {width} x {height}")
+    print(f"  CRS: {crs}")
+
+
+def save_aaigrid(
+    dem: np.ndarray,
+    output_path: str,
+    bounds,
+    nodata: Optional[float] = -9999,
+    precision: int = 2,
+):
+    """
+    Save DEM in AAIGrid (Arc ASCII Grid) format.
+    
+    This format is directly compatible with the FracAdapt backend parser.
+    The backend expects this exact format from OpenTopography API.
+    
+    AAIGrid Format:
+        ncols         <number of columns>
+        nrows         <number of rows>
+        xllcorner     <west boundary longitude>
+        yllcorner     <south boundary latitude>
+        cellsize      <cell size in degrees>
+        nodata_value  <missing data sentinel>
+        <space-separated elevation values, row by row>
+    
+    Args:
+        dem: 2D numpy array of elevation values [H, W]
+        output_path: Output .asc file path
+        bounds: Geographic bounds (left, bottom, right, top)
+        nodata: NoData sentinel value (default: -9999)
+        precision: Decimal places for elevation values (default: 2)
+    """
+    height, width = dem.shape
+    
+    # Calculate cellsize from bounds and dimensions
+    # cellsize = (east - west) / ncols
+    cellsize_x = (bounds.right - bounds.left) / width
+    cellsize_y = (bounds.top - bounds.bottom) / height
+    
+    # AAIGrid assumes square cells - use average if slightly different
+    cellsize = (cellsize_x + cellsize_y) / 2
+    
+    # xllcorner and yllcorner are the LOWER-LEFT corner coordinates
+    xllcorner = bounds.left
+    yllcorner = bounds.bottom
+    
+    # Replace NaN with nodata value
+    if nodata is None:
+        nodata = -9999
+    dem_clean = np.where(np.isnan(dem), nodata, dem)
+    
+    # Ensure output directory exists
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    with open(output_path, 'w') as f:
+        # Write header (exactly matches OpenTopography format)
+        f.write(f"ncols         {width}\n")
+        f.write(f"nrows         {height}\n")
+        f.write(f"xllcorner     {xllcorner:.10f}\n")
+        f.write(f"yllcorner     {yllcorner:.10f}\n")
+        f.write(f"cellsize      {cellsize:.15f}\n")
+        f.write(f"nodata_value  {nodata}\n")
+        
+        # Write grid data (row by row, top to bottom)
+        # AAIGrid stores data from TOP-LEFT corner
+        for row in dem_clean:
+            row_str = " ".join(f"{v:.{precision}f}" for v in row)
+            f.write(row_str + "\n")
+    
+    # Calculate approximate resolution in meters
+    resolution_m = cellsize * 111320  # degrees to meters at equator
+    
+    print(f"Saved AAIGrid: {output_path}")
+    print(f"  Dimensions: {width} x {height}")
+    print(f"  Cellsize: {cellsize:.10f} deg (~{resolution_m:.1f}m)")
+    print(f"  Bounds: [{xllcorner:.6f}, {yllcorner:.6f}] to [{bounds.right:.6f}, {bounds.top:.6f}]")
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="DEM Super-Resolution Inference v2",
+        description="DEM Super-Resolution Inference v2 with FracAdapt Backend Support",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+    # Basic inference (AAIGrid output for FracAdapt backend)
+    python inference_v2.py --checkpoint best_model.pth --input dem_30m.tif --output dem_10m.asc
+    
+    # With TTA for better quality
+    python inference_v2.py --checkpoint best_model.pth --input dem_30m.asc --output dem_10m.asc --tta
+    
+    # Output GeoTIFF instead
+    python inference_v2.py --checkpoint best_model.pth --input dem_30m.tif --output dem_10m.tif --format geotiff
+    
+    # Output both formats
+    python inference_v2.py --checkpoint best_model.pth --input dem_30m.tif --output dem_10m.asc --also_geotiff dem_10m.tif
+        """
     )
     
-    parser.add_argument("--checkpoint", type=str, required=True, help="Model checkpoint")
-    parser.add_argument("--input", type=str, required=True, help="Input LR DEM")
-    parser.add_argument("--output", type=str, required=True, help="Output SR DEM")
-    parser.add_argument("--tile_size", type=int, default=256, help="Tile size")
-    parser.add_argument("--overlap", type=int, default=32, help="Tile overlap")
-    parser.add_argument("--device", type=str, default="cpu", choices=["cpu", "mps", "cuda"])
-    parser.add_argument("--norm_mode", type=str, default="global", choices=["global", "per_tile"])
+    parser.add_argument("--checkpoint", type=str, required=True, help="Model checkpoint path")
+    parser.add_argument("--input", type=str, required=True, help="Input LR DEM (.tif or .asc)")
+    parser.add_argument("--output", type=str, required=True, help="Output SR DEM path")
+    parser.add_argument("--tile_size", type=int, default=256, help="Tile size for processing (default: 256)")
+    parser.add_argument("--overlap", type=int, default=32, help="Tile overlap in pixels (default: 32)")
+    parser.add_argument("--device", type=str, default="cpu", choices=["cpu", "mps", "cuda"], help="Inference device")
+    parser.add_argument("--norm_mode", type=str, default="global", choices=["global", "per_tile"], help="Normalization mode")
+    
+    # Output format options
+    parser.add_argument("--format", type=str, default="aaigrid", choices=["aaigrid", "geotiff"],
+                        help="Output format: 'aaigrid' (default, for FracAdapt backend) or 'geotiff'")
+    parser.add_argument("--also_geotiff", type=str, default=None,
+                        help="Also save GeoTIFF to this path (in addition to primary output)")
+    parser.add_argument("--precision", type=int, default=2,
+                        help="Decimal precision for AAIGrid elevation values (default: 2)")
     
     # TTA options
     parser.add_argument("--tta", action="store_true", help="Enable test-time augmentation")
-    parser.add_argument("--tta_rotations", type=str, default="0,90,180,270", help="TTA rotations")
+    parser.add_argument("--tta_rotations", type=str, default="0,90,180,270", help="TTA rotations (comma-separated)")
     
     # Uncertainty options
-    parser.add_argument("--uncertainty", action="store_true", help="Enable uncertainty estimation")
-    parser.add_argument("--n_samples", type=int, default=10, help="MC dropout samples")
-    parser.add_argument("--uncertainty_output", type=str, default=None, help="Uncertainty map output")
+    parser.add_argument("--uncertainty", action="store_true", help="Enable uncertainty estimation (MC Dropout)")
+    parser.add_argument("--n_samples", type=int, default=10, help="MC dropout samples (default: 10)")
+    parser.add_argument("--uncertainty_output", type=str, default=None, help="Uncertainty map output path")
     
     args = parser.parse_args()
     
     print("=" * 60)
     print("DEM Super-Resolution Inference v2")
+    print("FracAdapt Backend Compatible")
     print("=" * 60)
     print(f"Input: {args.input}")
     print(f"Output: {args.output}")
+    print(f"Format: {args.format.upper()}")
     print(f"TTA: {args.tta}")
     print(f"Uncertainty: {args.uncertainty}")
     print("=" * 60)
@@ -402,19 +629,27 @@ def main():
     scale = config.get("model", {}).get("scale", 3)
     print(f"Model loaded. Scale: {scale}x")
     
-    # Load input
+    # Load input (supports both GeoTIFF and AAIGrid)
     print(f"\nLoading input: {args.input}")
     lr_dem, metadata = load_dem(args.input)
+    input_format = metadata.get("format", "unknown")
     print(f"Input shape: {lr_dem.shape}")
+    print(f"Input format: {input_format}")
     
     # Handle nodata
     nodata = metadata.get("nodata")
     if nodata is not None:
-        nodata_mask = lr_dem == nodata
+        nodata_mask = np.isnan(lr_dem) if np.isnan(nodata) else (lr_dem == nodata)
         if nodata_mask.any():
             print(f"NoData pixels: {nodata_mask.sum()}")
             lr_dem = np.where(nodata_mask, np.nan, lr_dem)
             lr_dem = np.nan_to_num(lr_dem, nan=np.nanmean(lr_dem))
+    
+    # Handle NaN values that might come from AAIGrid loading
+    if np.isnan(lr_dem).any():
+        nan_count = np.isnan(lr_dem).sum()
+        print(f"Replacing {nan_count} NaN values with mean elevation")
+        lr_dem = np.nan_to_num(lr_dem, nan=np.nanmean(lr_dem))
     
     # Parse TTA rotations
     tta_rotations = [int(r) for r in args.tta_rotations.split(",")]
@@ -436,19 +671,48 @@ def main():
     )
     
     print(f"\nOutput shape: {sr_dem.shape}")
-    print(f"Output range: [{sr_dem.min():.2f}, {sr_dem.max():.2f}]")
+    print(f"Output range: [{sr_dem.min():.2f}, {sr_dem.max():.2f}] meters")
+    print(f"Resolution improvement: {lr_dem.shape} -> {sr_dem.shape} ({scale}x)")
     
-    # Save output
-    print(f"\nSaving output: {args.output}")
-    save_dem(sr_dem, args.output, metadata["crs"], metadata["bounds"], nodata)
+    # Calculate output resolution
+    input_cellsize = metadata.get("cellsize")
+    if input_cellsize:
+        output_cellsize = input_cellsize / scale
+        input_res_m = input_cellsize * 111320
+        output_res_m = output_cellsize * 111320
+        print(f"Resolution: ~{input_res_m:.0f}m -> ~{output_res_m:.0f}m")
+    
+    # Save primary output
+    print(f"\nSaving primary output: {args.output}")
+    save_dem(
+        sr_dem, args.output, metadata["crs"], metadata["bounds"],
+        nodata=-9999 if nodata is None else nodata,
+        output_format=args.format,
+        precision=args.precision
+    )
+    
+    # Save additional GeoTIFF if requested
+    if args.also_geotiff:
+        print(f"\nSaving additional GeoTIFF: {args.also_geotiff}")
+        save_dem(
+            sr_dem, args.also_geotiff, metadata["crs"], metadata["bounds"],
+            nodata=-9999 if nodata is None else nodata,
+            output_format="geotiff"
+        )
     
     # Save uncertainty map if requested
     if uncertainty_map is not None and args.uncertainty_output:
-        print(f"Saving uncertainty: {args.uncertainty_output}")
-        save_dem(uncertainty_map, args.uncertainty_output, metadata["crs"], metadata["bounds"])
+        print(f"\nSaving uncertainty map: {args.uncertainty_output}")
+        save_dem(
+            uncertainty_map, args.uncertainty_output, metadata["crs"], metadata["bounds"],
+            nodata=-9999,
+            output_format=args.format,
+            precision=4  # Higher precision for uncertainty values
+        )
     
     print("\n" + "=" * 60)
     print("Inference complete!")
+    print(f"Output ready for FracAdapt backend: {args.output}")
     print("=" * 60)
 
 

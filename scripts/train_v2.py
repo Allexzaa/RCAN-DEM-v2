@@ -305,6 +305,8 @@ def train_epoch(
     elev_meter = AverageMeter()
     grad_meter = AverageMeter()
     curv_meter = AverageMeter()
+    spec_meter = AverageMeter()
+    edge_meter = AverageMeter()
     
     optimizer.zero_grad()
     
@@ -359,6 +361,10 @@ def train_epoch(
             grad_meter.update(components["gradient"].item(), batch_size)
         if "curvature" in components:
             curv_meter.update(components["curvature"].item(), batch_size)
+        if "spectral" in components:
+            spec_meter.update(components["spectral"].item(), batch_size)
+        if "edge" in components:
+            edge_meter.update(components["edge"].item(), batch_size)
         
         # Update progress bar
         pbar.set_postfix({
@@ -376,6 +382,8 @@ def train_epoch(
         "elevation": elev_meter.avg,
         "gradient": grad_meter.avg,
         "curvature": curv_meter.avg,
+        "spectral": spec_meter.avg,
+        "edge": edge_meter.avg,
     }
 
 
@@ -393,6 +401,8 @@ def validate(
     elev_meter = AverageMeter()
     grad_meter = AverageMeter()
     curv_meter = AverageMeter()
+    spec_meter = AverageMeter()
+    edge_meter = AverageMeter()
     nan_count = 0
     
     with torch.no_grad():
@@ -423,6 +433,10 @@ def validate(
                 grad_meter.update(components["gradient"].item(), batch_size)
             if "curvature" in components:
                 curv_meter.update(components["curvature"].item(), batch_size)
+            if "spectral" in components:
+                spec_meter.update(components["spectral"].item(), batch_size)
+            if "edge" in components:
+                edge_meter.update(components["edge"].item(), batch_size)
     
     if nan_count > 0 and logger:
         logger.warning(f"  ⚠️  {nan_count} validation batches had NaN/Inf and were skipped")
@@ -432,6 +446,8 @@ def validate(
         "elevation": elev_meter.avg,
         "gradient": grad_meter.avg,
         "curvature": curv_meter.avg,
+        "spectral": spec_meter.avg,
+        "edge": edge_meter.avg,
     }
 
 
@@ -706,6 +722,8 @@ def train(
         "train_elevation": [], "val_elevation": [],
         "train_gradient": [], "val_gradient": [],
         "train_curvature": [], "val_curvature": [],
+        "train_spectral": [], "val_spectral": [],
+        "train_edge": [], "val_edge": [],
         "lr": [],
     }
     
@@ -754,14 +772,47 @@ def train(
         history["val_gradient"].append(val_metrics["gradient"])
         history["train_curvature"].append(train_metrics["curvature"])
         history["val_curvature"].append(val_metrics["curvature"])
+        history["train_spectral"].append(train_metrics["spectral"])
+        history["val_spectral"].append(val_metrics["spectral"])
+        history["train_edge"].append(train_metrics["edge"])
+        history["val_edge"].append(val_metrics["edge"])
         history["lr"].append(current_lr)
         
         # TensorBoard logging
         if writer:
-            writer.add_scalars("Loss", {
+            # Total loss
+            writer.add_scalars("Loss/Total", {
                 "train": train_metrics["loss"],
                 "val": val_metrics["loss"],
             }, epoch)
+            
+            # Individual loss components
+            writer.add_scalars("Loss/Elevation", {
+                "train": train_metrics["elevation"],
+                "val": val_metrics["elevation"],
+            }, epoch)
+            writer.add_scalars("Loss/Gradient", {
+                "train": train_metrics["gradient"],
+                "val": val_metrics["gradient"],
+            }, epoch)
+            writer.add_scalars("Loss/Curvature", {
+                "train": train_metrics["curvature"],
+                "val": val_metrics["curvature"],
+            }, epoch)
+            
+            # Spectral and Edge losses (if available)
+            if "spectral" in train_metrics:
+                writer.add_scalars("Loss/Spectral", {
+                    "train": train_metrics["spectral"],
+                    "val": val_metrics.get("spectral", 0),
+                }, epoch)
+            if "edge" in train_metrics:
+                writer.add_scalars("Loss/Edge", {
+                    "train": train_metrics["edge"],
+                    "val": val_metrics.get("edge", 0),
+                }, epoch)
+            
+            # Learning rate
             writer.add_scalar("Learning_Rate", current_lr, epoch)
             writer.flush()
         

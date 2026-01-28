@@ -14,7 +14,8 @@
 </p>
 </div>
 
-## Overview
+<details>
+<summary><b>📋 Overview</b></summary>
 
 **RCAN-DEM v2** is an enhanced deep learning model for Digital Elevation Model (DEM) super-resolution, converting 30m resolution DEMs to 10m resolution with physics-aware loss functions optimized for **vehicle terrain analysis**.
 
@@ -24,8 +25,12 @@ This is the improved v2 architecture with:
 - 📊 **Vehicle-Specific Losses** (TRI, directional curvature, edge-aware)
 - ⚡ **Test-Time Augmentation** for improved accuracy
 - 📈 **Early Stopping** and **LR Warmup**
+- 📤 **AAIGrid Output** for FracAdapt backend compatibility
 
-## Key Features
+</details>
+
+<details>
+<summary><b>🎯 Key Features</b></summary>
 
 ### Architecture Improvements
 | Feature | Description |
@@ -64,8 +69,12 @@ This is the improved v2 architecture with:
 - Test-Time Augmentation (4 rotations)
 - Monte Carlo Dropout for uncertainty estimation
 - Improved sliding window blending
+- **AAIGrid format output** (FracAdapt backend compatible)
 
-## Training Data: 13 US Regions
+</details>
+
+<details>
+<summary><b>🗺️ Training Data: 13 US Regions</b></summary>
 
 | Region | Terrain Type | Tiles |
 |--------|--------------|-------|
@@ -84,7 +93,10 @@ This is the improved v2 architecture with:
 | Sedona, AZ | Red Rock Formations | 24 |
 | **Total** | **13 Regions** | **2,024** |
 
-## Installation
+</details>
+
+<details>
+<summary><b>⚙️ Installation</b></summary>
 
 ```bash
 # Clone repository
@@ -100,7 +112,10 @@ pip install torch torchvision torchaudio
 pip install numpy scipy matplotlib rasterio tqdm pyyaml tensorboard
 ```
 
-## Quick Start
+</details>
+
+<details>
+<summary><b>🚀 Quick Start</b></summary>
 
 ### Training
 
@@ -118,31 +133,41 @@ python scripts/train_v2.py --data_dir processed/ --resume outputs_v2/checkpoints
 ### Inference
 
 ```bash
-# Basic inference
+# Basic inference (AAIGrid output for FracAdapt backend)
 python inference_v2.py \
     --checkpoint outputs_v2/checkpoints/best_model.pth \
     --input dem_30m.tif \
-    --output dem_10m_sr.tif \
+    --output dem_10m.asc \
     --device mps
 
 # With Test-Time Augmentation (recommended)
 python inference_v2.py \
     --checkpoint best_model.pth \
     --input dem_30m.tif \
-    --output dem_10m.tif \
+    --output dem_10m.asc \
     --tta \
     --device mps
+
+# Output GeoTIFF format instead
+python inference_v2.py \
+    --checkpoint best_model.pth \
+    --input dem_30m.tif \
+    --output dem_10m.tif \
+    --format geotiff
 
 # With uncertainty estimation
 python inference_v2.py \
     --checkpoint best_model.pth \
     --input dem_30m.tif \
-    --output dem_10m.tif \
+    --output dem_10m.asc \
     --uncertainty \
-    --uncertainty_output uncertainty_map.tif
+    --uncertainty_output uncertainty_map.asc
 ```
 
-## Project Structure
+</details>
+
+<details>
+<summary><b>📁 Project Structure</b></summary>
 
 ```
 RCAN-DEM-v2/
@@ -169,14 +194,19 @@ RCAN-DEM-v2/
 ├── scripts/
 │   └── train_v2.py               # Training script
 ├── docs/
-│   └── DEM-SR-FracAdapt-Integration-Report.md
-├── inference_v2.py               # Inference with TTA
+│   ├── DEM-SR-FracAdapt-Integration-Report.md
+│   ├── AAIGrid-Integration-Guide.md
+│   └── Future-Terrain-Aware-Training.md
+├── inference_v2.py               # Inference with TTA & AAIGrid
 ├── SPECIFICATION.md              # Full specification
 ├── PROGRESS.md                   # Implementation progress
 └── README.md                     # This file
 ```
 
-## Configuration
+</details>
+
+<details>
+<summary><b>⚙️ Configuration</b></summary>
 
 ### Default Configuration
 
@@ -206,9 +236,13 @@ training:
 inference:
   use_tta: true
   tta_rotations: [0, 90, 180, 270]
+  format: "aaigrid"  # Default: AAIGrid for FracAdapt backend
 ```
 
-## Vehicle Application Integration
+</details>
+
+<details>
+<summary><b>🚗 Vehicle Application Integration</b></summary>
 
 This model is optimized for integration with vehicle terrain analysis systems:
 
@@ -220,9 +254,17 @@ This model is optimized for integration with vehicle terrain analysis systems:
 | Obstacle Density (impact loading) | `EdgeAwareLoss` |
 | TTI Score | All losses combined |
 
-See `docs/DEM-SR-FracAdapt-Integration-Report.md` for detailed integration documentation.
+**Backend Compatibility:**
+- ✅ **AAIGrid format output** - Direct compatibility with FracAdapt backend parser
+- ✅ **Geographic coordinates preserved** - Same lat/lng extent, 3× finer resolution
+- ✅ **No backend code changes required** - Drop-in replacement for 30m SRTM data
 
-## Performance
+See `docs/AAIGrid-Integration-Guide.md` and `docs/DEM-SR-FracAdapt-Integration-Report.md` for detailed integration documentation.
+
+</details>
+
+<details>
+<summary><b>📊 Performance</b></summary>
 
 ### Accuracy Improvements vs v1
 
@@ -240,16 +282,25 @@ See `docs/DEM-SR-FracAdapt-Integration-Report.md` for detailed integration docum
 | RAM | 16GB | 64GB+ |
 | Storage | 10GB | 50GB+ |
 
-## Related Projects
+</details>
+
+<details>
+<summary><b>🔗 Related Projects</b></summary>
 
 - [RCAN-DEM v1](https://github.com/Allexzaa/DEM-SR-Model) - Original model
 - [FracAdapt](https://github.com/Allexzaa/FracAdapt) - Military fleet management system
 
-## License
+</details>
+
+<details>
+<summary><b>📄 License</b></summary>
 
 MIT License - See [LICENSE](LICENSE) for details.
 
-## Citation
+</details>
+
+<details>
+<summary><b>📚 Citation</b></summary>
 
 ```bibtex
 @software{rcan_dem_v2,
@@ -260,10 +311,10 @@ MIT License - See [LICENSE](LICENSE) for details.
 }
 ```
 
-## Author
-
-**Alex Zare**
+</details>
 
 ---
+
+**Author:** Alex Zare
 
 *Built with PyTorch on Apple Silicon*
