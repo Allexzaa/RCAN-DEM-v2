@@ -206,7 +206,7 @@ RCAN-DEM-v2/
 </details>
 
 <details>
-<summary><b><img src="https://api.iconify.design/material-symbols/tune-outline.svg?width=24&height=24" alt="icon" style="vertical-align: middle;"/> Configuration</b></summary>
+<summary><b><img src="https://api.iconify.design/material-symbols/tune.svg?width=24&height=24" alt="icon" style="vertical-align: middle;"/> Configuration</b></summary>
 
 ### Default Configuration
 
@@ -264,7 +264,7 @@ See `docs/AAIGrid-Integration-Guide.md` and `docs/DEM-SR-FracAdapt-Integration-R
 </details>
 
 <details>
-<summary><b><img src="https://api.iconify.design/material-symbols/show-chart-outline.svg?width=24&height=24" alt="icon" style="vertical-align: middle;"/> Performance</b></summary>
+<summary><b><img src="https://api.iconify.design/material-symbols/bar-chart.svg?width=24&height=24" alt="icon" style="vertical-align: middle;"/> Performance</b></summary>
 
 ### Accuracy Improvements vs v1
 
@@ -285,7 +285,7 @@ See `docs/AAIGrid-Integration-Guide.md` and `docs/DEM-SR-FracAdapt-Integration-R
 </details>
 
 <details>
-<summary><b><img src="https://api.iconify.design/material-symbols/link-outline.svg?width=24&height=24" alt="icon" style="vertical-align: middle;"/> Related Projects</b></summary>
+<summary><b><img src="https://api.iconify.design/material-symbols/link.svg?width=24&height=24" alt="icon" style="vertical-align: middle;"/> Related Projects</b></summary>
 
 - [RCAN-DEM v1](https://github.com/Allexzaa/DEM-SR-Model) - Original model
 - [FracAdapt](https://github.com/Allexzaa/FracAdapt) - Military fleet management system
