@@ -15,7 +15,7 @@
 </div>
 
 <details>
-<summary><b>📋 Overview</b></summary>
+<summary><b><img src="https://api.iconify.design/material-symbols/description-outline.svg?width=24&height=24" alt="icon" style="vertical-align: middle;"/> Overview</b></summary>
 
 **RCAN-DEM v2** is an enhanced deep learning model for Digital Elevation Model (DEM) super-resolution, converting 30m resolution DEMs to 10m resolution with physics-aware loss functions optimized for **vehicle terrain analysis**.
 
@@ -30,7 +30,7 @@ This is the improved v2 architecture with:
 </details>
 
 <details>
-<summary><b>🎯 Key Features</b></summary>
+<summary><b><img src="https://api.iconify.design/material-symbols/star-outline.svg?width=24&height=24" alt="icon" style="vertical-align: middle;"/> Key Features</b></summary>
 
 ### Architecture Improvements
 | Feature | Description |
@@ -74,7 +74,7 @@ This is the improved v2 architecture with:
 </details>
 
 <details>
-<summary><b>🗺️ Training Data: 13 US Regions</b></summary>
+<summary><b><img src="https://api.iconify.design/material-symbols/map-outline.svg?width=24&height=24" alt="icon" style="vertical-align: middle;"/> Training Data: 13 US Regions</b></summary>
 
 | Region | Terrain Type | Tiles |
 |--------|--------------|-------|
@@ -96,7 +96,7 @@ This is the improved v2 architecture with:
 </details>
 
 <details>
-<summary><b>⚙️ Installation</b></summary>
+<summary><b><img src="https://api.iconify.design/material-symbols/settings-outline.svg?width=24&height=24" alt="icon" style="vertical-align: middle;"/> Installation</b></summary>
 
 ```bash
 # Clone repository
@@ -115,7 +115,7 @@ pip install numpy scipy matplotlib rasterio tqdm pyyaml tensorboard
 </details>
 
 <details>
-<summary><b>🚀 Quick Start</b></summary>
+<summary><b><img src="https://api.iconify.design/material-symbols/rocket-launch-outline.svg?width=24&height=24" alt="icon" style="vertical-align: middle;"/> Quick Start</b></summary>
 
 ### Training
 
@@ -167,7 +167,7 @@ python inference_v2.py \
 </details>
 
 <details>
-<summary><b>📁 Project Structure</b></summary>
+<summary><b><img src="https://api.iconify.design/material-symbols/folder-outline.svg?width=24&height=24" alt="icon" style="vertical-align: middle;"/> Project Structure</b></summary>
 
 ```
 RCAN-DEM-v2/
@@ -206,7 +206,7 @@ RCAN-DEM-v2/
 </details>
 
 <details>
-<summary><b>⚙️ Configuration</b></summary>
+<summary><b><img src="https://api.iconify.design/material-symbols/tune-outline.svg?width=24&height=24" alt="icon" style="vertical-align: middle;"/> Configuration</b></summary>
 
 ### Default Configuration
 
@@ -242,7 +242,7 @@ inference:
 </details>
 
 <details>
-<summary><b>🚗 Vehicle Application Integration</b></summary>
+<summary><b><img src="https://api.iconify.design/material-symbols/directions-car-outline.svg?width=24&height=24" alt="icon" style="vertical-align: middle;"/> Vehicle Application Integration</b></summary>
 
 This model is optimized for integration with vehicle terrain analysis systems:
 
@@ -264,7 +264,7 @@ See `docs/AAIGrid-Integration-Guide.md` and `docs/DEM-SR-FracAdapt-Integration-R
 </details>
 
 <details>
-<summary><b>📊 Performance</b></summary>
+<summary><b><img src="https://api.iconify.design/material-symbols/show-chart-outline.svg?width=24&height=24" alt="icon" style="vertical-align: middle;"/> Performance</b></summary>
 
 ### Accuracy Improvements vs v1
 
@@ -285,7 +285,7 @@ See `docs/AAIGrid-Integration-Guide.md` and `docs/DEM-SR-FracAdapt-Integration-R
 </details>
 
 <details>
-<summary><b>🔗 Related Projects</b></summary>
+<summary><b><img src="https://api.iconify.design/material-symbols/link-outline.svg?width=24&height=24" alt="icon" style="vertical-align: middle;"/> Related Projects</b></summary>
 
 - [RCAN-DEM v1](https://github.com/Allexzaa/DEM-SR-Model) - Original model
 - [FracAdapt](https://github.com/Allexzaa/FracAdapt) - Military fleet management system
@@ -293,14 +293,14 @@ See `docs/AAIGrid-Integration-Guide.md` and `docs/DEM-SR-FracAdapt-Integration-R
 </details>
 
 <details>
-<summary><b>📄 License</b></summary>
+<summary><b><img src="https://api.iconify.design/material-symbols/description-outline.svg?width=24&height=24" alt="icon" style="vertical-align: middle;"/> License</b></summary>
 
 MIT License - See [LICENSE](LICENSE) for details.
 
 </details>
 
 <details>
-<summary><b>📚 Citation</b></summary>
+<summary><b><img src="https://api.iconify.design/material-symbols/menu-book-outline.svg?width=24&height=24" alt="icon" style="vertical-align: middle;"/> Citation</b></summary>
 
 ```bibtex
 @software{rcan_dem_v2,
