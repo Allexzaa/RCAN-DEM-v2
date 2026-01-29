@@ -25,6 +25,7 @@ pip install numpy scipy matplotlib rasterio tqdm pyyaml tensorboard
 
 `best_model.pth` is too large for the repo (>100 MB). Use one of:
 
+- **Google Drive (recommended):** Download **best_model.pth** from [this folder](https://drive.google.com/drive/folders/1ITf5GxD8aK4kbIYpleN5UEdXW8CLhSS2?usp=drive_link). Place it in `outputs_v2/checkpoints/best_model.pth`.
 - **GitHub Releases:** Check [Releases](https://github.com/Allexzaa/RCAN-DEM-v2/releases) for a `best_model.pth` asset. Download it and place it in `outputs_v2/checkpoints/best_model.pth`.
 - **Git LFS:** If the repo uses LFS for that file, run `git lfs pull` after cloning.
 - **Your own:** If you trained the model, use your saved `best_model.pth` in `outputs_v2/checkpoints/`.

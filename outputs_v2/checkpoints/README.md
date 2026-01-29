@@ -2,4 +2,4 @@
 
 Place **best_model.pth** here for inference and evaluation.
 
-**Note:** `best_model.pth` is ~181 MB and exceeds GitHub's 100 MB file limit, so it is not stored in this repo. To share it via GitHub, use [Git LFS](https://git-lfs.github.com/) (`git lfs track "*.pth"` then add and push), or upload it as a [Release](https://docs.github.com/en/repositories/releasing-projects-on-github) asset.
+**Download:** `best_model.pth` (~181 MB) is available from [Google Drive](https://drive.google.com/drive/folders/1ITf5GxD8aK4kbIYpleN5UEdXW8CLhSS2?usp=drive_link). See [TESTING.md](../../TESTING.md) for full instructions.
