@@ -164,6 +164,10 @@ python inference_v2.py \
     --uncertainty_output uncertainty_map.asc
 ```
 
+### Testing
+
+See **[TESTING.md](TESTING.md)** for step-by-step instructions: getting the checkpoint, creating sample data, and running inference on a small 30m DEM.
+
 </details>
 
 <details>

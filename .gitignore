@@ -76,6 +76,8 @@ ENV/
 # Data files (large)
 *.tif
 *.tiff
+!sample_data/
+!sample_data/*.tif
 *.asc
 *.npy
 *.npz
