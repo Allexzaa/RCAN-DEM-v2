@@ -166,7 +166,7 @@ python inference_v2.py \
 
 ### Testing
 
-See **[TESTING.md](TESTING.md)** for step-by-step instructions: getting the checkpoint, creating sample data, and running inference on a small 30m DEM.
+See the **[testing/](testing/README.md)** folder for instructions, sample data, and code to test the model (checkpoint download, run inference on included sample DEM).
 
 </details>
 
