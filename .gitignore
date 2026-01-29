@@ -84,16 +84,20 @@ ENV/
 *.pth
 *.pt
 
-# Output directories (checkpoints/logs/tensorboard excluded; outputs_v2/ and processed/ tracked)
+# Output directories: only outputs_v2/checkpoints/best_model.pth tracked in checkpoints
 outputs/
 # outputs_v2/  -- tracked (reports, config, history, inference_results)
 checkpoints/
+!outputs_v2/checkpoints/
+outputs_v2/checkpoints/*
+!outputs_v2/checkpoints/best_model.pth
+!outputs_v2/checkpoints/README.md
 logs/
 tensorboard/
 
-# Raw data
+# Raw data and processed (not pushed)
 raw_data/
-# processed/  -- tracked (folder structure; *.npy still ignored)
+processed/
 
 # Temporary files
 *.tmp
