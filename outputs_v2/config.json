@@ -1,0 +1,84 @@
+{
+  "model": {
+    "type": "rcan_v2",
+    "scale": 3,
+    "n_resgroups": 10,
+    "n_resblocks": 20,
+    "n_feats": 64,
+    "dropout": 0.1,
+    "use_spatial_attention": false,
+    "use_multiscale": false,
+    "reduction": 16
+  },
+  "loss": {
+    "mode": "fixed",
+    "w_elevation": 1.0,
+    "w_gradient": 0.5,
+    "w_curvature": 0.2,
+    "w_spectral": 0.1,
+    "w_edge": 0.2,
+    "use_spectral": true,
+    "use_edge": true,
+    "use_complexity": true,
+    "w_multiscale": 0.0,
+    "w_complexity": 0.1,
+    "use_multiscale": false,
+    "spectral_weight_high": 0.5,
+    "edge_weight": 2.0,
+    "complexity_weight": 2.0
+  },
+  "training": {
+    "epochs": 200,
+    "batch_size": 4,
+    "accumulation_steps": 4,
+    "optimizer": "adamw",
+    "lr": 0.0001,
+    "lr_min": 1e-06,
+    "weight_decay": 0.01,
+    "warmup_epochs": 5,
+    "early_stopping": true,
+    "patience": 30,
+    "min_delta": 0.0001,
+    "clip_grad_norm": 1.0,
+    "save_every": 10,
+    "log_every": 10,
+    "scheduler": "cosine"
+  },
+  "augmentation": {
+    "mode": "full",
+    "noise_std": 0.02,
+    "shift_range": 0.1,
+    "scale_range": [
+      0.9,
+      1.1
+    ],
+    "use_flip": true,
+    "use_rotation": true,
+    "use_noise": true,
+    "noise_prob": 0.5,
+    "use_shift": true,
+    "shift_prob": 0.5,
+    "use_scale": true,
+    "scale_prob": 0.3
+  },
+  "dataloader": {
+    "num_workers": 4,
+    "pin_memory": false,
+    "persistent_workers": true
+  },
+  "device": "mps",
+  "seed": 42,
+  "inference": {
+    "use_tta": true,
+    "tta_rotations": [
+      0,
+      90,
+      180,
+      270
+    ],
+    "tta_flips": false,
+    "tile_size": 256,
+    "overlap": 32,
+    "norm_mode": "global"
+  }
+}

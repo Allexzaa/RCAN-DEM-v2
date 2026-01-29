@@ -1,0 +1,104 @@
+{
+  "afghanistan": {
+    "input_30m": {
+      "shape": [
+        901,
+        901
+      ],
+      "elev_min_m": 0.0,
+      "elev_max_m": 2742.28125,
+      "elev_mean_m": 2029.8809814453125,
+      "elev_std_m": 155.97952270507812
+    },
+    "output_10m": {
+      "shape": [
+        2703,
+        2703
+      ],
+      "elev_min_m": -1337.81005859375,
+      "elev_max_m": 2743.219970703125,
+      "elev_mean_m": 2024.1038818359375,
+      "elev_std_m": 175.2830352783203
+    },
+    "reconstruction_fidelity": {
+      "rmse_30m_recon_m": 70.52490997314453,
+      "mae_30m_recon_m": 9.799656867980957,
+      "correlation_input_vs_downsampled_sr": 0.9151141541785348,
+      "mean_elevation_difference_m": -5.777099609375
+    },
+    "gradient": {
+      "input_mean_grad_m_per_px": 3.721615791320801,
+      "output_mean_grad_m_per_px": 1.8926794528961182,
+      "input_std_grad": 34.67919921875,
+      "output_std_grad": 20.26959800720215
+    }
+  },
+  "iraq": {
+    "input_30m": {
+      "shape": [
+        901,
+        901
+      ],
+      "elev_min_m": 0.0,
+      "elev_max_m": 72.93096160888672,
+      "elev_mean_m": 38.05398941040039,
+      "elev_std_m": 6.324333190917969
+    },
+    "output_10m": {
+      "shape": [
+        2703,
+        2703
+      ],
+      "elev_min_m": -29.399999618530273,
+      "elev_max_m": 68.62999725341797,
+      "elev_mean_m": 37.7188835144043,
+      "elev_std_m": 6.5035929679870605
+    },
+    "reconstruction_fidelity": {
+      "rmse_30m_recon_m": 1.768523931503296,
+      "mae_30m_recon_m": 0.5692976713180542,
+      "correlation_input_vs_downsampled_sr": 0.9636010057262182,
+      "mean_elevation_difference_m": -0.33510589599609375
+    },
+    "gradient": {
+      "input_mean_grad_m_per_px": 0.4596727788448334,
+      "output_mean_grad_m_per_px": 0.13362060487270355,
+      "input_std_grad": 0.8241477012634277,
+      "output_std_grad": 0.4137696623802185
+    }
+  },
+  "vietnam": {
+    "input_30m": {
+      "shape": [
+        901,
+        901
+      ],
+      "elev_min_m": 0.0,
+      "elev_max_m": 1049.427978515625,
+      "elev_mean_m": 186.86862182617188,
+      "elev_std_m": 157.22373962402344
+    },
+    "output_10m": {
+      "shape": [
+        2703,
+        2703
+      ],
+      "elev_min_m": -491.7200012207031,
+      "elev_max_m": 1046.43994140625,
+      "elev_mean_m": 184.8145751953125,
+      "elev_std_m": 155.35675048828125
+    },
+    "reconstruction_fidelity": {
+      "rmse_30m_recon_m": 18.567289352416992,
+      "mae_30m_recon_m": 3.5618114471435547,
+      "correlation_input_vs_downsampled_sr": 0.9931033220432515,
+      "mean_elevation_difference_m": -2.054046630859375
+    },
+    "gradient": {
+      "input_mean_grad_m_per_px": 10.221392631530762,
+      "output_mean_grad_m_per_px": 3.640681505203247,
+      "input_std_grad": 8.758150100708008,
+      "output_std_grad": 4.0203022956848145
+    }
+  }
+}

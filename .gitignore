@@ -76,6 +76,7 @@ ENV/
 # Data files (large)
 *.tif
 *.tiff
+*.asc
 *.npy
 *.npz
 *.h5
@@ -83,16 +84,16 @@ ENV/
 *.pth
 *.pt
 
-# Output directories
+# Output directories (checkpoints/logs/tensorboard excluded; outputs_v2/ and processed/ tracked)
 outputs/
-outputs_v2/
+# outputs_v2/  -- tracked (reports, config, history, inference_results)
 checkpoints/
 logs/
 tensorboard/
 
 # Raw data
 raw_data/
-processed/
+# processed/  -- tracked (folder structure; *.npy still ignored)
 
 # Temporary files
 *.tmp

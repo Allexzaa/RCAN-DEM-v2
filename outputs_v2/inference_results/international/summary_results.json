@@ -1,0 +1,78 @@
+{
+  "regions": {
+    "afghanistan": {
+      "name": "Afghanistan (Kabul region)",
+      "bounds": {
+        "south": 34.0,
+        "north": 34.25,
+        "west": 69.0,
+        "east": 69.25
+      }
+    },
+    "iraq": {
+      "name": "Iraq (Baghdad region)",
+      "bounds": {
+        "south": 33.0,
+        "north": 33.25,
+        "west": 44.0,
+        "east": 44.25
+      }
+    },
+    "vietnam": {
+      "name": "Vietnam (Hanoi region)",
+      "bounds": {
+        "south": 21.0,
+        "north": 21.25,
+        "west": 105.0,
+        "east": 105.25
+      }
+    }
+  },
+  "results": [
+    {
+      "region": "afghanistan",
+      "success": true,
+      "input_shape": [
+        901,
+        901
+      ],
+      "output_shape": [
+        2703,
+        2703
+      ],
+      "elev_min_m": -1337.81005859375,
+      "elev_max_m": 2743.219970703125,
+      "elev_mean_m": 2024.1038818359375
+    },
+    {
+      "region": "iraq",
+      "success": true,
+      "input_shape": [
+        901,
+        901
+      ],
+      "output_shape": [
+        2703,
+        2703
+      ],
+      "elev_min_m": -29.399999618530273,
+      "elev_max_m": 68.62999725341797,
+      "elev_mean_m": 37.7188835144043
+    },
+    {
+      "region": "vietnam",
+      "success": true,
+      "input_shape": [
+        901,
+        901
+      ],
+      "output_shape": [
+        2703,
+        2703
+      ],
+      "elev_min_m": -491.7200012207031,
+      "elev_max_m": 1046.43994140625,
+      "elev_mean_m": 184.8145751953125
+    }
+  ]
+}
