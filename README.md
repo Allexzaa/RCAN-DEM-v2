@@ -193,6 +193,13 @@ RCAN-DEM-v2/
 │   └── dataset_v2.py             # Dataset with augmentation
 ├── scripts/
 │   └── train_v2.py               # Training script
+├── outputs_v2/                   # Training & inference outputs (created by train/inference)
+│   ├── checkpoints/              # Model checkpoints (best_model.pth, epoch_*.pth)
+│   ├── history.json              # Training history
+│   ├── config.json               # Run config
+│   ├── inference_results/        # Inference output (e.g. dem_10m_sr.asc)
+│   ├── logs/                     # Training logs
+│   └── tensorboard/              # TensorBoard logs
 ├── docs/
 │   ├── DEM-SR-FracAdapt-Integration-Report.md
 │   ├── AAIGrid-Integration-Guide.md

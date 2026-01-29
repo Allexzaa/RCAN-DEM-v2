@@ -85,6 +85,7 @@ ENV/
 
 # Output directories
 outputs/
+outputs_v2/
 checkpoints/
 logs/
 tensorboard/

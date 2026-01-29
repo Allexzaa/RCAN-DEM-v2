@@ -46,7 +46,7 @@ from models import create_model_v2
 
 def load_model(checkpoint_path: str, device: str = "cpu") -> Tuple[torch.nn.Module, dict]:
     """Load trained model from checkpoint."""
-    checkpoint = torch.load(checkpoint_path, map_location=device)
+    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
     
     config = checkpoint.get("config", {})
     model_config = config.get("model", {})
